@@ -13,7 +13,7 @@ sys.path.append('/home/eduardi/python/bin')
 import optparse
 import subprocess
 import re
-import xlsxwriter
+#import xlsxwriter
 #import paramiko
 #import crypto
 
@@ -96,27 +96,50 @@ def main(args):
 #    if args.rm != None :
         
     boxes = args.list_name
+    boxPath = {}
 # Checking arguments existing
     if boxes and not args.configPath :
         configPath = "/usr/he/config"
         configFiles = config_copy(boxes,configPath)
+        for box in boxes.split(',') :
+            boxPath[box] = configPath
     elif not boxes and not args.configPath :
         print '\033[91m\'Error: Please provide box name.  \'\033[0m'
         sys.exit()
     else:
 #        print "configPath = \'%s\'" % args.configPath
         configFiles = config_copy(boxes,args.configPath)
+        for box in boxes.split(',') :
+            boxPath[box] = args.configPath
 
-    compare(configFiles)
-
-
-def compare(cfgFiles):
-    for key in cfgFiles :
-        print "box = ", key
-        for value in cfgFiles[key]:
-            print  "value = ", value
+    compare(configFiles, boxPath)
 
 
+def compare(cfgFiles, boxPath):
+    ignoreFile = "./ignore"
+#    for key in cfgFiles :
+#        print type(key)
+#        for value in cfgFiles[key]:
+#            print  "value = ", value
+#            pass
+    print '_'*15
+#    for j in cfgFiles[cfgFiles.keys()[0]] :
+    a = cfgFiles.keys()[-1]
+#    print cfgFiles[a]
+#    print "AA  \'%s\'"  % type(a)  
+    inter = set(cfgFiles[cfgFiles.keys()[0]]).intersection(cfgFiles[cfgFiles.keys()[-1]])
+    compareFile(inter ,ignoreFile, boxPath)
+
+
+def compareFile(inter ,ignoreFile, boxPath):
+    with open(ignoreFile) as inFile:
+        ignoreList = inFile.readlines()
+    ignoreList = [x.rstrip() for x in ignoreList ]
+    print ignoreList
+    for config in inter:
+        print "config = ", config
+    
+ 
 
 def config_copy(boxes, configPath):
     if boxes:
@@ -140,7 +163,7 @@ def config_copy(boxes, configPath):
                 print bcolors.FAIL + printText + bcolors.ENDC # %(i, configPath)
                 sys.exit()
 
-            path = "%s/cp/%s" % (str(os.getcwd()),str(i))
+            path = "%s/cmp/%s" % (str(os.getcwd()),str(i))
             if not os.path.isdir(path):
                 cmd = "mkdir -p %s" % (path)
                 if subprocess.call(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) :
@@ -168,7 +191,7 @@ def config_copy(boxes, configPath):
 
 
 def read_txt(filename):
-    ''' Reading file to hash
+    ''' Reading file to list
     '''
  
     with open(filename) as in_file:
@@ -181,7 +204,7 @@ def parse_args(argv):
     Parameters:
         argv - the list of arguments
     """
-    parser = optparse.OptionParser(description='This module is for get latest checkout files')
+    parser = optparse.OptionParser(description='This script is for compare config files between different remote boxes')
     parser.add_option('-l', '--list', dest='list_name', help="list of modules")
     parser.add_option('-p', '--path', dest='configPath', help="Destination path of config folder")
     parser.add_option('--log', dest='log', help="Redirecting output into log file. Please provide file name")
