@@ -117,27 +117,29 @@ def main(args):
 
 def compare(cfgFiles, boxPath):
     ignoreFile = "./ignore"
-#    for key in cfgFiles :
-#        print type(key)
-#        for value in cfgFiles[key]:
-#            print  "value = ", value
-#            pass
-    print '_'*15
-#    for j in cfgFiles[cfgFiles.keys()[0]] :
-    a = cfgFiles.keys()[-1]
-#    print cfgFiles[a]
-#    print "AA  \'%s\'"  % type(a)  
     inter = set(cfgFiles[cfgFiles.keys()[0]]).intersection(cfgFiles[cfgFiles.keys()[-1]])
+    
+    noMatch = {}
+    for key in cfgFiles :
+        noMatch[key] = [x for x in cfgFiles[key] if x not in inter ]
+        print "Extra files on ", key
+        print [ x for x in noMatch[key] ]
+
+
     compareFile(inter ,ignoreFile, boxPath)
 
+#    noMatch[cfgFiles.keys()[0]] = [x for x in cfgFiles[cfgFiles.keys()[0]] if x not in inter ]
+#    print "No Match = ",noMatch
 
 def compareFile(inter ,ignoreFile, boxPath):
     with open(ignoreFile) as inFile:
         ignoreList = inFile.readlines()
     ignoreList = [x.rstrip() for x in ignoreList ]
-    print ignoreList
-    for config in inter:
-        print "config = ", config
+#    print ignoreList
+#    print inter  # intersection. matched files
+
+#    for config in inter:
+#        print "config = ", config
     
  
 
