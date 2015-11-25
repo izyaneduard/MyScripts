@@ -122,26 +122,100 @@ def compare(cfgFiles, boxPath):
     noMatch = {}
     for key in cfgFiles :
         noMatch[key] = [x for x in cfgFiles[key] if x not in inter ]
-        print "Extra files on ", key
-        print [ x for x in noMatch[key] ]
+        print "\nExtra files on ", key
+        for extraFile in noMatch[key] :
+            print extraFile
 
 
-    compareFile(inter ,ignoreFile, boxPath)
+    compareAll(inter ,ignoreFile, boxPath)
 
 #    noMatch[cfgFiles.keys()[0]] = [x for x in cfgFiles[cfgFiles.keys()[0]] if x not in inter ]
 #    print "No Match = ",noMatch
 
-def compareFile(inter ,ignoreFile, boxPath):
+def compareAll(inter ,ignoreFile, boxPath):
     with open(ignoreFile) as inFile:
         ignoreList = inFile.readlines()
     ignoreList = [x.rstrip() for x in ignoreList ]
-#    print ignoreList
-#    print inter  # intersection. matched files
+    print "Following words will be ignored",ignoreList
+    print inter  # intersection. matched files
+    print "-"*20
+#    for boxName in boxPath:
+#        print "Box path = ", boxPath[boxName]
+    for config in inter:
+        a = 'cmp/%s/%s/%s' % (boxPath.keys()[0], boxPath[boxPath.keys()[0]].split('/')[-1], config,)
+        b = 'cmp/%s/%s/%s' % (boxPath.keys()[-1], boxPath[boxPath.keys()[-1]].split('/')[-1], config)
+        compareFile(a,b)
 
-#    for config in inter:
-#        print "config = ", config
+def compareFile(a,b):
+    print "\n",
+    print bcolors.FAIL +  a + bcolors.ENDC, 
+    print "  VS  ", b
+    print '_'*20
+    cmpFile = {}
+    for files in (a, b ):  
+        if os.path.isfile(files):
+            with open(files) as inFile:
+                cmpFile[files] =  [ lines.strip() for lines in inFile if not re.match("^\s*\#+.*",lines) ]
+#                print cmpFile[files]
+#    print "\n\nintersection = ",set(cmpFile[a]).intersection(cmpFile[b])
+#    print "\n ", a, " have extra lines :\n " #,list(set(cmpFile[a]).difference(cmpFile[b]))
+    diffA = list(set(cmpFile[a]).difference(cmpFile[b]))
+    diffB = list(set(cmpFile[b]).difference(cmpFile[a]))
+    for x in list(set(cmpFile[a]).difference(cmpFile[b])):
+        if len(x):
+            print bcolors.FAIL + x + bcolors.ENDC
+
+#    print "\n ", b, " have extra lines :\n " #,list(set(cmpFile[a]).difference(cmpFile[b]))
+    for x in list(set(cmpFile[b]).difference(cmpFile[a])):
+#        print x
+        if len(x) > 0 :
+#            print bcolors.OKBLUE + x + bcolors.ENDC
+            print x
+    print '/'*35
+#    diffLines(cmpFile[a],cmpFile[b])
+
+#    print "\n\ndifference list(a,b)= ",list(set(cmpFile[a]) & set(cmpFile[b]))
+#    print "\n\ndifference b,a = ", diff(cmpFile[b],cmpFile[a])
+#    sys.exit()
+
+
+def diff(list1, list2):
+    c = set(list1).union(set(list2))
+    d = set(list1).intersection(set(list2))
+    return list(c - d)
+
+def diffLines(list1,list2):  #ignoreList):
+    maxLen = max(len(list1),len(list2))
+#    for num in range(maxLen):
+    Found = 0
+    for i in range(len(list1)):
+        for j in range(len(list2)): 
+            if list1[i] != list2[j]:
+#                print list1[i]
+                #print bcolors.FAIL + list1[i] + bcolors.ENDC
+                Found = 0
+            else:
+                Found = 1
+                break
+        if Found == 0 :
+            print bcolors.FAIL + list1[i] + bcolors.ENDC
+            
+
+#    for i in range(len(list2)):
+#        for j in range(len(list1)): 
+#            if list1[i] != list2[j]:
+#                print list2[i]
+#            else:
+#                break
     
- 
+
+#        i = num
+#        j = num
+#        if list1[i] != list2[j]:
+#            for ig in ignoreList:
+#                if not re.match(ig,list1[i]) and not re.match(ig,list1[j]):
+#                    pass
+#                    print 
 
 def config_copy(boxes, configPath):
     if boxes:
