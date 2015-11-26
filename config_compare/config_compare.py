@@ -144,9 +144,9 @@ def compareAll(inter ,ignoreFile, boxPath):
     for config in inter:
         a = 'cmp/%s/%s/%s' % (boxPath.keys()[0], boxPath[boxPath.keys()[0]].split('/')[-1], config,)
         b = 'cmp/%s/%s/%s' % (boxPath.keys()[-1], boxPath[boxPath.keys()[-1]].split('/')[-1], config)
-        compareFile(a,b)
+        compareFile(a, b, ignoreList)
 
-def compareFile(a,b):
+def compareFile(a, b, ignoreList):
     print "\n",
     print bcolors.FAIL +  a + bcolors.ENDC, 
     print "  VS  ", b
@@ -162,16 +162,40 @@ def compareFile(a,b):
     diffA = list(set(cmpFile[a]).difference(cmpFile[b]))
     diffB = list(set(cmpFile[b]).difference(cmpFile[a]))
     for x in list(set(cmpFile[a]).difference(cmpFile[b])):
-        if len(x):
-            print bcolors.FAIL + x + bcolors.ENDC
+#        for ignore in ignoreList:
+#        if  len(x) > 0 and [p for p in ignoreList if re.match(p, x)] :
+#            pass
+        if len(x) > 0 : #and [p for p in ignoreList if re.match(p, x)] :
+#            print "p = ", p
+            flag = 0
+            for p in ignoreList:
+                match = re.match('.*'+p+'.*', x) 
+                if match:
+                    flag = 1
+                    break
+                else:
+                    flag = 0
+            if flag == 0 :
+                print bcolors.FAIL + x + bcolors.ENDC
 
 #    print "\n ", b, " have extra lines :\n " #,list(set(cmpFile[a]).difference(cmpFile[b]))
     for x in list(set(cmpFile[b]).difference(cmpFile[a])):
 #        print x
         if len(x) > 0 :
 #            print bcolors.OKBLUE + x + bcolors.ENDC
-            print x
-    print '/'*35
+            flag = 0
+            for p in ignoreList:
+                match = re.match('.*'+p+'.*', x)
+                if match:
+                    flag = 1
+                    break
+                else:
+                    flag = 0
+            if flag == 0 :
+                print x
+
+
+#    print '/'*35
 #    diffLines(cmpFile[a],cmpFile[b])
 
 #    print "\n\ndifference list(a,b)= ",list(set(cmpFile[a]) & set(cmpFile[b]))
