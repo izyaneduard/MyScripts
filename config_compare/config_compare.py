@@ -95,24 +95,38 @@ def main(args):
 
 #    if args.rm != None :
         
-    boxes = args.list_name
-    boxPath = {}
+#    boxes = args.boxList
+#    boxPath = {}
+    configPath = {}
 # Checking arguments existing
-    if boxes and not args.configPath :
-        configPath = "/usr/he/config"
-        configFiles = config_copy(boxes,configPath)
-        for box in boxes.split(',') :
-            boxPath[box] = configPath
-    elif not boxes and not args.configPath :
-        print '\033[91m\'Error: Please provide box name.  \'\033[0m'
-        sys.exit()
-    else:
-#        print "configPath = \'%s\'" % args.configPath
-        configFiles = config_copy(boxes,args.configPath)
-        for box in boxes.split(',') :
-            boxPath[box] = args.configPath
+    if args.boxList and not args.configPath :
+#        configPath = "/usr/he/config"
+        for box in args.boxList.split(',') :
+            configPath[box] = "/usr/he/config" 
+#            boxPath[box] = configPath[box]
+#        configFiles = config_copy(boxes,configPath)
 
-    compare(configFiles, boxPath)
+    elif not args.boxList and not args.configPath :
+        print '\033[91m\'Error: Please provide boxes name.  \'\033[0m'
+        sys.exit()
+    elif args.boxList and  len(args.configPath.split(',')) > 1 :  #args.configPath :
+#        print "configPath = \'%s\'" % args.configPath
+        configPathList = [x for x in args.configPath.split(',')]
+        i = 0
+#        if len(args.configPath.split(',')) > 1 :
+        for box in args.boxList.split(',') :
+            configPath[box] = configPathList[i]
+#            boxPath[box] = configPath[box]
+            i+=1
+#        configFiles = config_copy(boxes,configPath)
+    else:
+        print bcolors.FAIL + 'Error: Please provide config paths for 2 boxes' + bcolors.ENDC, 
+
+#    configFiles = config_copy(boxes,configPath)
+    if configPath :
+        configFiles = config_copy(configPath)
+        compare(configFiles, configPath)
+#        compare(configFiles, boxPath)
 
 
 def compare(cfgFiles, boxPath):
@@ -225,27 +239,12 @@ def diffLines(list1,list2):  #ignoreList):
             print bcolors.FAIL + list1[i] + bcolors.ENDC
             
 
-#    for i in range(len(list2)):
-#        for j in range(len(list1)): 
-#            if list1[i] != list2[j]:
-#                print list2[i]
-#            else:
-#                break
-    
 
-#        i = num
-#        j = num
-#        if list1[i] != list2[j]:
-#            for ig in ignoreList:
-#                if not re.match(ig,list1[i]) and not re.match(ig,list1[j]):
-#                    pass
-#                    print 
-
-def config_copy(boxes, configPath):
-    if boxes:
+def config_copy(configPath):
+    if configPath:
         config = {}
-        for i in boxes.split(',') :
-            print "Copy from " + '%s:%s'  % (i, configPath) 
+        for i in configPath: #boxes.split(',') :
+            print "Copy from " + '%s:%s'  % (i, configPath[i]) 
             i = str(i).rstrip()
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -257,10 +256,10 @@ def config_copy(boxes, configPath):
 
             sftp = ssh.open_sftp()
             try:
-                 sftp.chdir(configPath) # /usr/he/config/
+                 sftp.chdir(configPath[i]) # /usr/he/config/
             except:
-                printText = "Can't find %s:%s"  %(i, configPath)    
-                print bcolors.FAIL + printText + bcolors.ENDC # %(i, configPath)
+                printText = "Can't find %s:%s"  %(i, configPath[i])    
+                print bcolors.FAIL + printText + bcolors.ENDC # %(i, configPath[i])
                 sys.exit()
 
             path = "%s/cmp/%s" % (str(os.getcwd()),str(i))
@@ -272,18 +271,18 @@ def config_copy(boxes, configPath):
                 print bcolors.WARNING + " Already exist! " + path + bcolors.ENDC
             config[i] = []
 
-            if not os.path.isdir(path + '/' + os.path.basename(configPath)) :
-                cmd = "mkdir -p %s/%s" % (path,os.path.basename(configPath))
+            if not os.path.isdir(path + '/' + os.path.basename(configPath[i])) :
+                cmd = "mkdir -p %s/%s" % (path,os.path.basename(configPath[i]))
                 subprocess.call(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) 
 
                 for files in sftp.listdir() :
                     config[i].append(files)
-                    origin = '%s/%s/%s' % (str(os.path.dirname(configPath)),str(os.path.basename(configPath)),str(files))
+                    origin = '%s/%s/%s' % (str(os.path.dirname(configPath[i])),str(os.path.basename(configPath[i])),str(files))
 #                    print "orig = \'%s\'" % origin
-                    dst = "%s/%s/%s" % (path,str(os.path.basename(configPath)),str(files))
+                    dst = "%s/%s/%s" % (path,str(os.path.basename(configPath[i])),str(files))
                     sftp.get(origin, dst)
-            elif os.path.isdir(path + '/' + os.path.basename(configPath)) :
-                print bcolors.WARNING + " Already exist! " + path + '/' + os.path.basename(configPath) + bcolors.ENDC 
+            elif os.path.isdir(path + '/' + os.path.basename(configPath[i])) :
+                print bcolors.WARNING + " Already exist! " + path + '/' + os.path.basename(configPath[i]) + bcolors.ENDC 
 
         ssh.close()
     return config
@@ -304,8 +303,9 @@ def parse_args(argv):
     Parameters:
         argv - the list of arguments
     """
-    parser = optparse.OptionParser(description='This script is for compare config files between different remote boxes')
-    parser.add_option('-l', '--list', dest='list_name', help="list of modules")
+    parser = optparse.OptionParser(description='This script is for compare config files between different remote boxes',
+                                    usage="usage: %prog [options] arg1 arg2", version="%prog 1.0")
+    parser.add_option('-l', '--list', dest='boxList', help="list of modules")
     parser.add_option('-p', '--path', dest='configPath', help="Destination path of config folder")
     parser.add_option('--log', dest='log', help="Redirecting output into log file. Please provide file name")
     options, args = parser.parse_args(argv)
@@ -316,4 +316,3 @@ if __name__ == "__main__":
     # Parse command line args
     ARGS = parse_args(sys.argv[1:])
     sys.exit(main(ARGS))
-#    pdb.run(main(ARGS))
