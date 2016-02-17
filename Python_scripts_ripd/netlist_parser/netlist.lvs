@@ -1,0 +1,22 @@
+*      Description : "Inverter"
+*      Equation    : X=!A
+.subckt INV VDD VSS VBP VBN X A
+DN1 VBN A ndio AREA=0.1p PJ=1.5u M=1
+MPA X A VDD VBP pch L=0.05u W=0.6u M=4
+MNA X A VSS VBN nch L=0.05u W=0.5u M=3
+.ends
+*      Description : "NAND"
+*      Equation    : X=!(AB)
+.subckt NAND VDD VSS VBP VBN X A B
+DN21 VBN A ndio AREA=0.1p PJ=1.5u M=1
+MP2A X A VDD VBP pch L=0.05u W=0.6u M=4
+MN2A X A VSS VBN nch L=0.05u W=0.5u M=3
+.ends
+
+*      Description : "NOR"
+*      Equation    : X=!(A+B)
+.subckt NOR VDD VSS VBP VBN X A C D
+DN31 VBN A ndio AREA=0.1p PJ=1.5u M=1
+MP3A X A VDD VBP pch L=0.05u W=0.6u M=4
+MN3A X A VSS VBN nch L=0.05u W=0.5u M=3
+.ends
