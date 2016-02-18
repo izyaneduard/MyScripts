@@ -131,66 +131,76 @@ def main(args):
     way(xs,ys,1,flag)
 
 
-    w = 1
 
-    for i in range(matrixSize) :
-        for j in range(matrixSize) :
-            if (array[i][j] == 1) :
-                pass
-                        
+# Checking are ther any way to reach F
 
-    #print fixed
-
-
-
-    def way3 (xf,yf) :
+    def checkWay(xf,yf):
         global minx, miny , mm
-        mm = 10000000
+        mm = 0
+        xash = {}
         for i in range(4):
             yy = int((yf + stepy[i]))
             xx = int((xf + stepx[i]))
-
             if ( yy < matrixSize and   xx  < matrixSize and yy >= 0 and xx >= 0) :
-                bit = array[yy] [xx]
-                if (bit <  mm):
-                    mm = bit
-                    minx = xx
-                    miny = yy
-    #				array2[yy][xx] = '*'
-        if (mm == 10000000 ) :
+                bit = array[yy][xx]
+##                print "bit =", bit
+                if isinstance( bit, int ):
+#                    minx = xx
+#                    miny = yy
+                    xash[bit] = [yy,xx]
+#                    mm = bit
+        if xash.keys():
+            minKey = min(xash.keys())
+            miny = xash[minKey][0]
+            minx = xash[minKey][1]
+            mm = minKey
+ ##           print "miknKey = ",[ key for key in xash]
+        if mm == 0 :
             print "There is no way reach Finish !!! "
-    #	print mm,'minx =   ', minx, 'miny =  ',miny
-    way3(xf,yf)
+
+    checkWay(xf,yf)
+
+
+#    for i in range(int(matrixSize)) :
+#        for j in range(int(matrixSize)) :
+#            
+#            print array[i][j],
+#        print "\n",
+#
+#    print "--------------"
 
 
 
-    def way4 (x,y,mm0) :
+
+    def shortWay (x,y,mm0) :
         flag2 = 0
         for i in range(4):
             yy = int((y + stepy[i]))
             xx = int((x + stepx[i]))
 
             if ( yy < matrixSize and   xx  < matrixSize and yy >= 0 and xx >= 0) :
-                bit = array[yy] [xx]
-                if (bit ==  mm0 - 1 ):
+                bit = array[yy][xx]
+                if isinstance( bit, int ) and (bit ==  mm0 - 1 ):
                     flag2 = 1
                     y1 = yy
                     x1 = xx
                     
+                    
         if (flag2) :
             array2[y1][x1] = '*'
             flag2 = 0
-            way4(x1,y1,mm0-1)			
+            shortWay(x1,y1,mm0-1)			
 
     array2[ys][xs] = 'S'
     array2[yf][xf] = 'F'
 
-    if (mm == 10000000 ) :
+    if (mm == 0 ) :
+#    if False:  #isinstance( mm, int ):
         pass
     else :
 
         array2[miny][minx] = '*'					
-        way4 (minx,miny,mm)
+        shortWay (minx,miny,mm)
         for i in range(matrixSize) :
             for j in range(matrixSize) :
             
